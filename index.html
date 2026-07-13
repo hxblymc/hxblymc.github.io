@@ -120,6 +120,15 @@
   }
   #lb-cap { font-size: 13px; letter-spacing: .12em; color: #6a6a6a; margin-bottom: 6px; }
   #lb-cnt { font-size: 11px; letter-spacing: .22em; color: #b5b5b5; }
+  #lb-dl {
+    display: inline-block; margin-top: 10px;
+    font-size: 11px; letter-spacing: .22em;
+    color: #8a8a8a; text-decoration: none;
+    border-bottom: 1px solid #d5d5d5; padding-bottom: 2px;
+    pointer-events: auto; transition: color .25s, border-color .25s;
+  }
+  #lb-dl:hover { color: #141414; border-bottom-color: #141414; }
+  #lb-dl[hidden] { display: none; }
   @media (hover: none) {
     #lb-prev, #lb-next { display: none; }
   }
@@ -145,6 +154,7 @@
   <div id="lb-meta">
     <div id="lb-cap"></div>
     <div id="lb-cnt"></div>
+    <a id="lb-dl" hidden>下载原图</a>
   </div>
 </div>
 
@@ -308,6 +318,14 @@
     };
     lbCap.textContent = p.t || '';
     lbCnt.textContent = (li + 1) + ' / ' + items.length;
+    var dl = $('lb-dl');
+    if (p.o) {
+      dl.href = encodeURI(p.o);
+      dl.setAttribute('download', '');
+      dl.hidden = false;
+    } else {
+      dl.hidden = true;
+    }
     /* preload neighbours */
     [li - 1, li + 1].forEach(function (j) {
       if (items[j]) { var pre = new Image(); pre.src = encodeURI(items[j].src); }

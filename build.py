@@ -26,6 +26,7 @@ except ImportError:
 ROOT = Path(__file__).resolve().parent
 PHOTOS_DIR = ROOT / "photos"
 THUMBS_DIR = ROOT / "thumbs"
+ORIGINALS_DIR = ROOT / "originals"   # 放同名原图 -> 灯箱出现"下载原图"按钮
 SITE_JSON = ROOT / "site.json"
 OUT_JS = ROOT / "photos.js"
 
@@ -112,7 +113,7 @@ def build():
             print(f"跳过 {rel}(无法处理: {e})")
             continue
 
-        entries.append({
+        entry = {
             "src": "photos/" + rel.as_posix(),
             "thumb": "thumbs/" + thumb_rel.as_posix(),
             "w": w,
@@ -120,7 +121,10 @@ def build():
             "c": cat,
             "t": title_from(src.name),
             "d": shot,
-        })
+        }
+        if (ORIGINALS_DIR / rel).is_file():
+            entry["o"] = "originals/" + rel.as_posix()
+        entries.append(entry)
 
     # 清理已删除照片的缩略图
     removed = 0
@@ -143,7 +147,8 @@ def build():
     OUT_JS.write_text(js, encoding="utf-8")
 
     cats = sorted({e["c"] for e in entries if e["c"]})
-    print(f"完成: {len(entries)} 张照片,{len(cats)} 个分类 {cats},清理旧缩略图 {removed} 张。")
+    n_orig = sum(1 for e in entries if "o" in e)
+    print(f"完成: {len(entries)} 张照片,{len(cats)} 个分类 {cats},{n_orig} 张有原图,清理旧缩略图 {removed} 张。")
 
 
 if __name__ == "__main__":

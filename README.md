@@ -71,6 +71,10 @@ photo-portfolio/
 
 双击 `index.html` 即可在浏览器看效果。刚加的新照片要在本地立即看到,需装 Python 后运行 `pip install Pillow` 和 `python build.py`;不装也没关系,推送后云端会自动构建。
 
+## 原图下载(可选)
+
+想让访客能下载原图:把原图放进 `originals/` 文件夹,**文件名与 `photos/` 里的展示图保持一致**(含子文件夹路径)。构建后灯箱里会自动出现"下载原图"按钮;没有对应原图的照片不显示按钮。注意原图也计入网站 1GB 总容量,网页上传单张限 25MB(GitHub Desktop 可到 100MB)。
+
 ## 进阶(可选)
 
 - **自定义域名**:买一个域名(约 ¥60/年),仓库 Settings → Pages → Custom domain 绑定,再在域名商处加一条 CNAME 记录指向 `你的用户名.github.io`。
@@ -80,4 +84,4 @@ photo-portfolio/
 
 - **推送后网站没更新**:看仓库 Actions 标签,绿勾 = 成功(再强刷浏览器 Ctrl+F5);红叉 = 点进去看哪步报错。
 - **某张图没显示**:多半是 HEIC 或损坏文件,构建日志里会写"跳过"。
-- **404**:确认第 7 步 Pages 的 Source 已选 GitHub Actions,且网址包含仓库名。
+- **404**:确认 Pages 的 Source 已选 GitHub Actions,且网址包含仓库名。
