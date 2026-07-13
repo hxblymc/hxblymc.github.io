@@ -39,6 +39,7 @@ jobs:
           cp index.html photos.js dist/
           cp -r photos dist/photos
           if [ -d thumbs ]; then cp -r thumbs dist/thumbs; fi
+          if [ -d originals ]; then cp -r originals dist/originals; fi
 
       - uses: actions/configure-pages@v5
         with:
