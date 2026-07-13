@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="摄影作品集">
+<title>作品集</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ccircle cx='8' cy='8' r='5' fill='%23111'/%3E%3C/svg%3E">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    background: #fff;
+    color: #141414;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans SC", sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ---------- header ---------- */
+  header { text-align: center; padding: 78px 24px 46px; }
+  h1 {
+    font-size: clamp(20px, 3vw, 27px);
+    font-weight: 400;
+    letter-spacing: .42em;
+    text-indent: .42em;
+    text-transform: uppercase;
+  }
+  .tagline {
+    margin-top: 15px;
+    font-size: 12px;
+    letter-spacing: .3em;
+    text-indent: .3em;
+    color: #9a9a9a;
+    text-transform: uppercase;
+  }
+  nav {
+    margin-top: 40px;
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 10px 28px;
+  }
+  nav button {
+    background: none; border: none; font: inherit;
+    font-size: 13px; letter-spacing: .14em;
+    color: #9a9a9a; cursor: pointer;
+    padding: 3px 1px;
+    border-bottom: 1px solid transparent;
+    transition: color .25s;
+  }
+  nav button:hover { color: #141414; }
+  nav button.on { color: #141414; border-bottom-color: #141414; }
+
+  /* ---------- gallery ---------- */
+  main {
+    padding: 6px max(3vw, 14px) 30px;
+    max-width: 1720px;
+    margin: 0 auto;
+  }
+  .row { display: flex; gap: 8px; margin-bottom: 8px; }
+  figure { position: relative; cursor: zoom-in; overflow: hidden; flex: 0 0 auto; }
+  figure img {
+    width: 100%; height: 100%;
+    display: block; object-fit: cover;
+    opacity: 0;
+    transition: opacity .6s ease, transform .6s ease;
+  }
+  figure img.ld { opacity: 1; }
+  @media (hover: hover) {
+    figure:hover img.ld { opacity: .9; }
+  }
+  .col figure { margin-bottom: 10px; }
+  .empty {
+    text-align: center; color: #9a9a9a;
+    font-size: 14px; letter-spacing: .08em;
+    padding: 90px 20px; line-height: 2;
+  }
+
+  /* ---------- footer ---------- */
+  footer {
+    text-align: center;
+    padding: 60px 24px 70px;
+    font-size: 12px;
+    letter-spacing: .18em;
+    color: #b0b0b0;
+    line-height: 2.4;
+  }
+  footer a { color: #7a7a7a; text-decoration: none; transition: color .25s; margin: 0 10px; }
+  footer a:hover { color: #141414; }
+
+  /* ---------- lightbox ---------- */
+  #lightbox {
+    position: fixed; inset: 0; z-index: 50;
+    background: rgba(255,255,255,.975);
+    display: flex; align-items: center; justify-content: center;
+    touch-action: pan-y;
+  }
+  #lightbox[hidden] { display: none; }
+  #lb-img {
+    max-width: 91vw; max-height: 84vh;
+    object-fit: contain; display: block;
+    user-select: none; -webkit-user-drag: none;
+  }
+  .lb-btn {
+    position: fixed; background: none; border: none; cursor: pointer;
+    color: #c0c0c0; transition: color .25s; z-index: 51;
+    font-family: inherit;
+  }
+  .lb-btn:hover { color: #141414; }
+  #lb-close { top: 18px; right: 26px; font-size: 30px; font-weight: 200; line-height: 1; }
+  #lb-prev, #lb-next {
+    top: 50%; transform: translateY(-50%);
+    font-size: 34px; font-weight: 200; padding: 20px 16px;
+  }
+  #lb-prev { left: 10px; }
+  #lb-next { right: 10px; }
+  #lb-meta {
+    position: fixed; bottom: 22px; left: 0; right: 0;
+    text-align: center; pointer-events: none;
+  }
+  #lb-cap { font-size: 13px; letter-spacing: .12em; color: #6a6a6a; margin-bottom: 6px; }
+  #lb-cnt { font-size: 11px; letter-spacing: .22em; color: #b5b5b5; }
+  @media (hover: none) {
+    #lb-prev, #lb-next { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1 id="site-name"></h1>
+  <p class="tagline" id="site-tagline"></p>
+  <nav id="cats"></nav>
+</header>
+
+<main id="gallery"></main>
+
+<footer id="site-footer"></footer>
+
+<div id="lightbox" hidden>
+  <img id="lb-img" alt="">
+  <button class="lb-btn" id="lb-close" aria-label="关闭">&#215;</button>
+  <button class="lb-btn" id="lb-prev" aria-label="上一张">&#8249;</button>
+  <button class="lb-btn" id="lb-next" aria-label="下一张">&#8250;</button>
+  <div id="lb-meta">
+    <div id="lb-cap"></div>
+    <div id="lb-cnt"></div>
+  </div>
+</div>
+
+<script src="photos.js"></script>
+<script>
+(function () {
+  var SITE = window.SITE || {};
+  var PHOTOS = window.PHOTOS || [];
+  var $ = function (id) { return document.getElementById(id); };
+
+  /* ---------- header / footer ---------- */
+  var siteName = SITE.name || '作品集';
+  document.title = siteName + (SITE.tagline ? ' — ' + SITE.tagline : '');
+  $('site-name').textContent = siteName;
+  $('site-tagline').textContent = SITE.tagline || '';
+
+  var footBits = [];
+  if (SITE.email) footBits.push('<a href="mailto:' + SITE.email + '">' + SITE.email + '</a>');
+  if (SITE.instagram) footBits.push('<a href="https://instagram.com/' + SITE.instagram + '" target="_blank" rel="noopener">Instagram</a>');
+  if (SITE.weibo) footBits.push('<a href="' + SITE.weibo + '" target="_blank" rel="noopener">微博</a>');
+  $('site-footer').innerHTML =
+    (footBits.length ? '<div>' + footBits.join('') + '</div>' : '') +
+    '<div>&#169; ' + new Date().getFullYear() + ' ' + siteName + '</div>';
+
+  /* ---------- categories ---------- */
+  var ALL = '全部';
+  var seen = {};
+  var cats = [];
+  PHOTOS.forEach(function (p) {
+    if (p.c && !seen[p.c]) { seen[p.c] = true; cats.push(p.c); }
+  });
+  var order = SITE.category_order || [];
+  cats.sort(function (a, b) {
+    var ia = order.indexOf(a), ib = order.indexOf(b);
+    if (ia === -1 && ib === -1) return a.localeCompare(b, 'zh');
+    if (ia === -1) return 1;
+    if (ib === -1) return -1;
+    return ia - ib;
+  });
+
+  var current = ALL;
+  var fromHash = decodeURIComponent(location.hash.slice(1));
+  if (fromHash && cats.indexOf(fromHash) !== -1) current = fromHash;
+
+  var nav = $('cats');
+  function buildNav() {
+    nav.innerHTML = '';
+    if (!cats.length) return;
+    [ALL].concat(cats).forEach(function (c) {
+      var b = document.createElement('button');
+      b.textContent = c;
+      if (c === current) b.className = 'on';
+      b.onclick = function () { setCat(c, true); };
+      nav.appendChild(b);
+    });
+  }
+  function setCat(c, push) {
+    current = c;
+    if (push) {
+      if (c === ALL) history.replaceState(null, '', location.pathname + location.search);
+      else location.hash = encodeURIComponent(c);
+    }
+    buildNav();
+    render();
+    window.scrollTo(0, 0);
+  }
+  window.addEventListener('hashchange', function () {
+    var h = decodeURIComponent(location.hash.slice(1));
+    setCat(h && cats.indexOf(h) !== -1 ? h : ALL, false);
+  });
+
+  /* ---------- gallery layout (justified rows) ---------- */
+  var gallery = $('gallery');
+  var items = [];
+
+  function filtered() {
+    return current === ALL ? PHOTOS : PHOTOS.filter(function (p) { return p.c === current; });
+  }
+
+  function makeCard(p, idx, w, h) {
+    var fig = document.createElement('figure');
+    if (w) fig.style.width = w + 'px';
+    if (h) fig.style.height = h + 'px';
+    var img = document.createElement('img');
+    img.loading = 'lazy';
+    img.decoding = 'async';
+    img.alt = p.t || siteName;
+    img.src = encodeURI(p.thumb);
+    if (img.complete && img.naturalWidth) img.className = 'ld';
+    else img.addEventListener('load', function () { img.className = 'ld'; });
+    fig.appendChild(img);
+    fig.onclick = function () { openLB(idx); };
+    return fig;
+  }
+
+  function render() {
+    items = filtered();
+    gallery.innerHTML = '';
+    gallery.className = '';
+
+    if (!items.length) {
+      gallery.innerHTML = '<div class="empty">还没有照片。<br>把图片放进 photos/ 文件夹(可用子文件夹分类),推送后网站会自动更新。</div>';
+      return;
+    }
+
+    var cw = gallery.clientWidth - 2;
+    var gap = 8;
+
+    /* narrow screens: single column */
+    if (cw < 620) {
+      gallery.className = 'col';
+      items.forEach(function (p, i) {
+        gallery.appendChild(makeCard(p, i, null, null));
+      });
+      return;
+    }
+
+    var targetH = Math.max(250, Math.min(360, cw / 4.4));
+    var row = [], asum = 0;
+
+    function flush(isLast) {
+      if (!row.length) return;
+      var h = (cw - gap * (row.length - 1)) / asum;
+      if (isLast && h > targetH * 1.12) h = targetH;
+      var rowEl = document.createElement('div');
+      rowEl.className = 'row';
+      row.forEach(function (r) {
+        rowEl.appendChild(makeCard(r.p, r.i, r.a * h, h));
+      });
+      gallery.appendChild(rowEl);
+      row = []; asum = 0;
+    }
+
+    items.forEach(function (p, i) {
+      var a = (p.w && p.h) ? p.w / p.h : 1.5;
+      row.push({ p: p, i: i, a: a });
+      asum += a;
+      if (asum * targetH + gap * (row.length - 1) >= cw) flush(false);
+    });
+    flush(true);
+  }
+
+  var rsT;
+  window.addEventListener('resize', function () {
+    clearTimeout(rsT);
+    rsT = setTimeout(render, 160);
+  });
+
+  /* ---------- lightbox ---------- */
+  var lb = $('lightbox'), lbImg = $('lb-img'), lbCap = $('lb-cap'), lbCnt = $('lb-cnt');
+  var li = 0, lbOpen = false;
+
+  function showLB() {
+    var p = items[li];
+    if (!p) return;
+    lbImg.src = encodeURI(p.thumb);
+    var full = new Image();
+    full.src = encodeURI(p.src);
+    full.onload = function () {
+      if (lbOpen && items[li] === p) lbImg.src = full.src;
+    };
+    lbCap.textContent = p.t || '';
+    lbCnt.textContent = (li + 1) + ' / ' + items.length;
+    /* preload neighbours */
+    [li - 1, li + 1].forEach(function (j) {
+      if (items[j]) { var pre = new Image(); pre.src = encodeURI(items[j].src); }
+    });
+  }
+  function openLB(i) {
+    li = i; lbOpen = true;
+    lb.hidden = false;
+    document.body.style.overflow = 'hidden';
+    showLB();
+  }
+  function closeLB() {
+    lbOpen = false;
+    lb.hidden = true;
+    lbImg.src = '';
+    document.body.style.overflow = '';
+  }
+  function step(d) {
+    if (!items.length) return;
+    li = (li + d + items.length) % items.length;
+    showLB();
+  }
+
+  $('lb-close').onclick = closeLB;
+  $('lb-prev').onclick = function (e) { e.stopPropagation(); step(-1); };
+  $('lb-next').onclick = function (e) { e.stopPropagation(); step(1); };
+  lb.addEventListener('click', function (e) {
+    if (e.target === lb || e.target === lbImg) closeLB();
+  });
+  document.addEventListener('keydown', function (e) {
+    if (!lbOpen) return;
+    if (e.key === 'Escape') closeLB();
+    else if (e.key === 'ArrowLeft') step(-1);
+    else if (e.key === 'ArrowRight') step(1);
+  });
+
+  var tX = null;
+  lb.addEventListener('touchstart', function (e) {
+    if (e.touches.length === 1) tX = e.touches[0].clientX;
+  }, { passive: true });
+  lb.addEventListener('touchend', function (e) {
+    if (tX === null) return;
+    var dx = e.changedTouches[0].clientX - tX;
+    tX = null;
+    if (Math.abs(dx) > 45) step(dx < 0 ? 1 : -1);
+  }, { passive: true });
+
+  /* ---------- go ---------- */
+  buildNav();
+  render();
+})();
+</script>
+</body>
+</html>
